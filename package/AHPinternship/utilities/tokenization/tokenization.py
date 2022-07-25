@@ -9,6 +9,10 @@ import re
 from tqdm import tqdm
 from unidecode import unidecode # to remove diacritics while filtering
 
+import nltk
+nltk.download('stopwords')
+nltk.download('punkt')
+
 class Tokenizer:
     
     def __init__(self, language = None):

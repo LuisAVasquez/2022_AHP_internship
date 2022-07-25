@@ -7,7 +7,7 @@ import gensim
 import gensim.corpora as corpora
 from gensim.models import CoherenceModel
 
-from AHPinternship.utilities.tokenization import tokenization
+from AHPtopicmodelling.utilities.tokenization import tokenization
 
 # default maximum quantity of topic words to get after training the topic model.
 MAX_TOPIC_TOKENS = 4 
