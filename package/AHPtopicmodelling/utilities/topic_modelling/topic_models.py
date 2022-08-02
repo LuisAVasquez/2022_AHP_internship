@@ -8,7 +8,7 @@ import gensim.corpora as corpora
 from gensim.models import CoherenceModel
 
 from AHPtopicmodelling.utilities.tokenization import tokenization
-
+from AHPtopicmodelling.utilities import so
 # default maximum quantity of topic words to get after training the topic model.
 MAX_TOPIC_TOKENS = 4 
 
@@ -217,7 +217,7 @@ class TopicModelling():
 
         for tokenized_document in tqdm(self.tokenized_documents):
 
-            topics_for_document = get_topic_words_for_tokenized_document(
+            topics_for_document = self.get_topic_words_for_tokenized_document(
                 lda_model = self.model,
                 tokenized_document= tokenized_document,
                 dictionary= self.dictionary,
@@ -230,16 +230,3 @@ class TopicModelling():
 
 
 
-import numpy as np
-def sort_by_probability(pair_list):
-    """
-    Orders lists with elements of the form (<something>, probability)
-    in descending order by probability
-    """
-    pair_list = list(pair_list)
-    probabilities = [prob for _, prob in pair_list]
-    
-    # sort in descending order
-    indexes_by_probability = np.array(probabilities).argsort()[::-1]
-    result = [pair_list[i] for i in indexes_by_probability]
-    return result
