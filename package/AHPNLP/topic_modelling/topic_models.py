@@ -7,8 +7,8 @@ import gensim
 import gensim.corpora as corpora
 from gensim.models import CoherenceModel
 
-from AHPtopicmodelling.tokenization import tokenization
-from AHPtopicmodelling.utilities.utilities import sort_by_probability
+from AHPNLP.tokenization import tokenization
+from AHPNLP.utilities.utilities import sort_by_probability
 
 # default maximum quantity of topic words to get after training the topic model.
 MAX_TOPIC_TOKENS = 4 
@@ -24,7 +24,8 @@ class TopicModelling():
     def __init__(self, 
         documents:list,  # list of strings
         language = None, 
-        no_above = None
+        no_above = None,
+        nominal_groups = False, # wheter tokenization focus on word-tokens or nominal groups
         ):
         """
         `documents` is  a list of strings
@@ -37,7 +38,10 @@ class TopicModelling():
 
         # tokenize the documents
         print("Starting tokenization:")
-        self.tokenizer = tokenization.Tokenizer(self.language)
+        self.tokenizer = tokenization.Tokenizer(
+            language = self.language,
+            nominal_groups = nominal_groups
+            )
         self.tokenized_documents = self.tokenizer.batch_tokenize(documents)
 
         # other attributes
@@ -58,7 +62,7 @@ class TopicModelling():
         get a gensim id-word dictionary
         """
         
-        if self.dictionary is not None: return self.dictionary # avoid re-computation
+        #if self.dictionary is not None: return self.dictionary # avoid re-computation
         
         documents = self.tokenized_documents
         dictionary = corpora.Dictionary(documents)
@@ -83,7 +87,7 @@ class TopicModelling():
         """
         get a list of documents as Bag-of-Words lists.
         """
-        if self.corpus is not None: return self.corpus
+        #if self.corpus is not None: return self.corpus
         dictionary = self.get_gensim_dictionary(no_above)
         documents = self.tokenized_documents
     
@@ -127,19 +131,23 @@ class TopicModelling():
     def get_coherence_score(self):
         
         self.check_if_model_trained()
-        if self.coherence_cv is not None: return self.coherence_cv
+        #if self.coherence_cv is not None: return self.coherence_cv
         
         gensim_model = self.model
         gensim_dictionary = self.dictionary
         tokenized_documents = self.tokenized_documents
-
+        
+        #print("got the model, dictionary, and tokenized documents")
+        
         coherence_model_lda = CoherenceModel(
             model = gensim_model, 
             texts =  tokenized_documents,
             dictionary = gensim_dictionary, 
             coherence = 'c_v'
         )
+        #print("got the coherence model")
         self.coherence_cv = coherence_model_lda.get_coherence()
+        #print("got coherence")
         return self.coherence_cv
 
 
