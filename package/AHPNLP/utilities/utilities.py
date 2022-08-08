@@ -14,14 +14,18 @@ def sort_by_probability(pair_list):
     return result
 
 
-def get_clean_transcription(text):
+def get_clean_transcription(text:str):
     """delete the "Apparat critique", "Notes", and "References" sections"""
+    text = text.replace("↩", " ")
     delimiters = [
         "\nRéférences\n",
         "\nReferences\n",
         "\nNotes\n",
         "Apparat critique" ,
         "Aparat critique",    
+        "External Links",
+        "ALS ",
+        "ACS",
         ]
     for delimiter in delimiters:
         text = text.split(delimiter)[0]
@@ -29,3 +33,12 @@ def get_clean_transcription(text):
     return text
 
 
+def quick_clean_string(string:str) -> str:
+    """quickly remove some unnecessary charactares from a string"""
+    # the transcriptions come to the footnote numbers added to the end of the words in which they appear.
+    # these removes those numbers
+    result = string.lower()
+    result = result.rstrip("0123456789").strip().rstrip("0123456789").strip()
+    result = result.split("\(")[0]  #getting rid of LaTeX
+
+    return result
