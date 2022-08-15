@@ -1,5 +1,7 @@
 
 from numpy import array
+import re
+
 def sort_by_probability(pair_list):
     """
     Orders lists with elements of the form (<something>, probability)
@@ -24,12 +26,23 @@ def get_clean_transcription(text:str):
         "Apparat critique" ,
         "Aparat critique",    
         "External Links",
-        "ALS ",
+        "ALS",
         "ACS",
         ]
     for delimiter in delimiters:
         text = text.split(delimiter)[0]
 
+    # delete footnote numbers "poincaré4" -> "poincaré", "poincaré.4" -> "poincaré"
+    text = re.sub(
+        r"(\w)(\d+)",
+        r"\1 ",
+        text
+        )
+    text = re.sub(
+        r"(\w).(\d+)",
+        r"\1 ",
+        text
+    )
     return text
 
 
