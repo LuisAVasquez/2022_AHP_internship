@@ -1,7 +1,6 @@
 asgiref==3.5.2
 asttokens==2.0.5
 backcall==0.2.0
-backports.zoneinfo==0.2.1
 bitsets==0.8.4
 blis==0.7.8
 catalogue==2.0.7
