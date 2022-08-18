@@ -17,8 +17,13 @@ def sort_by_probability(pair_list):
 
 
 def get_clean_transcription(text:str):
-    """delete the "Apparat critique", "Notes", and "References" sections"""
+    """delete the "Apparat critique", "Notes", and "References" sections.
+    Also, clean some 
+    """
+    
+    
     text = text.replace("↩", " ")
+    text = text.replace("’", "'")
     delimiters = [
         "\nRéférences\n",
         "\nReferences\n",
@@ -32,6 +37,12 @@ def get_clean_transcription(text:str):
     for delimiter in delimiters:
         text = text.split(delimiter)[0]
 
+    # delete equations. Latex equations are enclosed in special characters: 
+    # - "\(\)" for inline math
+    # - "\[\]" for equations between paragraphs
+    text = re.sub(r'\\\([^)]*?\\\)', ' ', text)
+    text = re.sub(r'\\\[[^)]*?\\\]', ' ', text)
+
     # delete footnote numbers "poincaré4" -> "poincaré", "poincaré.4" -> "poincaré"
     text = re.sub(
         r"(\w)(\d+)",
@@ -41,6 +52,12 @@ def get_clean_transcription(text:str):
     text = re.sub(
         r"(\w).(\d+)",
         r"\1 ",
+        text
+    )
+    # deleting brackets used for completing abbrebiations: e.g. Substi[tution] -> Substitution
+    text = re.sub(
+        r'[\[\]]', 
+        '', 
         text
     )
     return text
