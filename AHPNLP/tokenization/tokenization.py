@@ -124,6 +124,12 @@ class Tokenizer:
             ]
 
         tokens = self.clean_tokens_list(tokens)
+        
+        #filter out very frequent tokens
+        tokens = [
+            token for token in tokens 
+            if token not in frequent_tokens[self.language]
+            ]
 
         # tokens = [
         #     self.stemmer.stem(token )
@@ -226,60 +232,6 @@ class Tokenizer:
             document_array_attributes, 
             nominal_groups=True
             )
-        """
-        for noun_chunk in noun_chunks:
-            parsed_noun_chunk = noun_chunk.as_doc(
-                array_head = document_array_attributes
-                )
-            # get all the tokens
-    
-            tokens = [token 
-                for token in parsed_noun_chunk
-            ]
-
-            # don't include noun phrases with tokens without a recognized POS
-            has_unrecognized = any([token.pos_ == "X" for token in tokens])
-            if has_unrecognized: continue # go to next noun_chunk
-
-            # delete all non-nouns from the beginning of the token list
-            clean_tokens = tokens.copy()
-            for token in tokens:
-                if (token.pos_ not in head_POS
-                    or 
-                    len(token) < 4
-                    ):
-                    del clean_tokens[0]
-                else:
-
-                    break
-            
-            # delete punctuation from the end
-            while True:
-                try:
-                    if clean_tokens[-1].pos_ in ["PUNCT", "SPACE"]: clean_tokens.pop()
-                    else: break
-                except:
-                    break
-
-            # if there is a punctuation in the middle of the token list, delete everything to the right:
-            aux_list = []
-            for token in clean_tokens:
-                if (
-                    not all([not char.isalpha() for char in token.text]) # avoid strings that are only punctuation
-                    and 
-                    token.pos_ not in ["PUNCT", "SPACE"]
-                    ): aux_list.append(token)
-                else: break
-            clean_tokens = aux_list.copy()
-
-            # nominal groups must have at least two tokens (nominal group = noun + complement)
-            if len(clean_tokens) > 1:
-                nominal_groups.append(clean_tokens)
-
-                
-        # add entities
-        #nominal_groups.extend( list(spacy_doc.ents) )
-        """
         return nominal_groups
     
     def tokenize_for_nominal_groups(self, spacy_doc) -> list:
@@ -287,16 +239,15 @@ class Tokenizer:
 
         nominal_groups = self.get_nominal_groups(spacy_doc)
         nominal_groups = [quick_clean_string(
-            #noun_chunk.text
-            (
-                " ".join([token.text for token in noun_chunk])
-                ).replace("’ ","’") # "d' honneur" -> "d'honneur"
+            #noun_chunk.lemma_
+            ( " ".join([token.lemma_ for token in noun_chunk]) )
             ) for noun_chunk in nominal_groups
             ]
         nominal_groups = self.clean_tokens_list(
             nominal_groups, strong_filter = False
             ) # include non alphanumeric characters
         
+        nominal_groups = list(set(nominal_groups)) #delete duplicates
     
         return nominal_groups
     
@@ -410,3 +361,16 @@ class Tokenizer:
     
         return res
 
+
+frequent_tokens = dict()
+frequent_tokens['french'] = [
+    "être", "avoir", "faire", "dire",
+    "voir", "pouvoir", "venir", "falloir",
+    "vouloir", "venir", 
+    "prendre", "arriver", "croire",
+    "mettre", "passer", "parler",
+    "trouver", "donner", "comprendre",
+    "partir", "demander", "tenir",
+    "aimer", "penser", "rester", 
+    "manger", "appeler"
+]
