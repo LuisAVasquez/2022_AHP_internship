@@ -166,8 +166,8 @@ class Tokenizer:
             ]
 
             # don't include noun phrases with tokens without a recognized POS
-            has_unrecognized = any([token.pos_ == "X" for token in tokens])
-            if has_unrecognized: continue # go to next noun_chunk
+            #has_unrecognized = any([token.pos_ == "X" for token in tokens])
+            #if has_unrecognized: continue # go to next noun_chunk
 
             clean_tokens = tokens.copy()
             
@@ -234,15 +234,30 @@ class Tokenizer:
             )
         return nominal_groups
     
-    def tokenize_for_nominal_groups(self, spacy_doc) -> list:
+    def tokenize_for_nominal_groups(self, 
+        spacy_doc,
+        normalized_form = False # raw form: "fonctions abéliennes". normalized form: "fonction abélien"
+        ) -> list:
         """given a spacy doc, get a list of all its nominal groups"""
 
         nominal_groups = self.get_nominal_groups(spacy_doc)
-        nominal_groups = [quick_clean_string(
+
+        if normalized_form:
+            nominal_groups = [
             #noun_chunk.lemma_
             ( " ".join([token.lemma_ for token in noun_chunk]) )
-            ) for noun_chunk in nominal_groups
+            for noun_chunk in nominal_groups
             ]
+        else:
+            # raw text
+            nominal_groups = [
+            #noun_chunk.text
+            ( " ".join([token.text for token in noun_chunk]) )
+            for noun_chunk in nominal_groups
+            ]
+
+        nominal_groups = [quick_clean_string(nominal_group) for nominal_group in nominal_groups]
+
         nominal_groups = self.clean_tokens_list(
             nominal_groups, strong_filter = False
             ) # include non alphanumeric characters
@@ -372,5 +387,8 @@ frequent_tokens['french'] = [
     "trouver", "donner", "comprendre",
     "partir", "demander", "tenir",
     "aimer", "penser", "rester", 
-    "manger", "appeler"
+    "manger", "appeler",
+    "bien", "monsieur", "madame",
+    "devoir", "envoyer", "grand", 
+    "savoir", "dévoué", "aller",
 ]
