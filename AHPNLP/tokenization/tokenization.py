@@ -263,24 +263,76 @@ class Tokenizer:
             ) # include non alphanumeric characters
         
         nominal_groups = list(set(nominal_groups)) #delete duplicates
+
+        # deal with "fuchsien" (see "NOTE" below)
+        nominal_groups = [normalise_fuchsien(ng) for ng in nominal_groups]
     
         return nominal_groups
     
     def tokenize_search_words(self, term_list:list) -> list:
         """
-        Given a list of terms searched, return the list of lists of all the tokens and entities in those search terms
+        Given a list of terms searched, 
+        return the content tokens and nominal groups in those search terms.
+        Both are returned in normalized form, that is, 
+        - nouns, and nominal groups are returned in singular
+        - adjectives are returned in masculine singular
+        - verbs are returned in their infinitive form
+
         e.g. 
-        input: "fonctions fuchsiennes", "nobel", "marie et pierre" 
-        output: [ [fonction, fuchsien], [nobel], [marie, pierre] ]
+        input: 
+            ( 
+                "fonctions fuchsiennes et fonctions abéliennes", 
+                "nobel", 
+                "marie et pierre", 
+                "l'école polytechnique" 
+            )
+        output: {
+            "nominal_groups": [ 
+                [fonction fuchsienne, fonction abélienne], 
+                [], 
+                [], 
+                [école polytechnique]
+                ]
+            "content_tokens": [ 
+                [fonction, fuchsien, abélien], 
+                [nobel], 
+                [marie, pierre],
+                [école, polytechnique]
+                ]
+            }
+        output: [
+            {
+             "nominal_groups": [fonction fuchsienne, fonction abélienne]
+             "content_tokens": [fonction, fuchsien, abélien]
+            },
+            {
+            "content_tokens": [], 
+            "nominal_groups": []
+            },
+            {
+            
+            }
+        ]    
         """
         
-        result = []
+        result = {"content_tokens": [], "nominal_groups": []}
         for search_term in term_list:
             spacy_doc = self.spacy_pipeline(search_term)
+            
+            # tokens
             tokens = self.tokenize_standart(spacy_doc) #+ self.get_tokenized_entities(spacy_doc)
             tokens = self.clean_tokens_list(tokens)
             #tokens = list(set(tokens))
-            result.append( tokens )
+            if tokens:
+                result["content_tokens"].append( tokens )
+
+            # nominal groups
+            nominal_groups = self.tokenize_for_nominal_groups(
+                spacy_doc,
+                normalized_form=True
+            )
+            if nominal_groups:
+                result["nominal_groups"].append(nominal_groups)
             
         return result
 
@@ -376,6 +428,27 @@ class Tokenizer:
     
         return res
 
+
+# NOTE
+#"fuchsienne" is not recognized by the french tokenizer, thus, we have to manually normalize it by applying these replacements in sequence.
+
+#1. "fuchsiennes" -> "fuchsien"
+#2. "fuchsiens" -> "fuchsien"
+#3. "fuchsienne" -> "fuchsien"
+#4. "fuchsien" -> "fuchsienne"
+
+def normalise_fuchsien(st):
+    return st.replace(
+                "fuchsiennes", "fuchsien"
+            ).replace(
+                "fuchsiens", "fuchsien"
+            ).replace(
+                "fuchsienne", "fuchsien"
+            ).replace(
+                "fuchsien", "fuchsienne"
+            ).replace(
+                "groupe fuchsienne", "groupe fuchsien" #only case when it is in masculine
+            )
 
 frequent_tokens = dict()
 frequent_tokens['french'] = [
